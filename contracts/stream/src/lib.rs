@@ -97,4 +97,29 @@ impl StreamContract {
             stream.deposit * (elapsed as i128) / (stream.duration as i128)
         }
     }
+
+    pub fn withdraw(env: Env, stream_id: u64) -> i128 {
+        let mut stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        stream.recipient.require_auth();
+
+        let vested = Self::vested_amount(env.clone(), stream_id);
+        let withdrawable = vested - stream.withdrawn;
+        if withdrawable <= 0 {
+            panic!("nothing to withdraw");
+        }
+
+        stream.withdrawn += withdrawable;
+        env.storage().persistent().set(&stream_id, &stream);
+
+        // Perform inter-contract transfer to recipient
+        let token_client = soroban_sdk::token::Client::new(&env, &stream.token);
+        token_client.transfer(&env.current_contract_address(), &stream.recipient, &withdrawable);
+
+        env.events().publish(
+            (Symbol::new(&env, "withdrawal"), stream_id, stream.recipient.clone()),
+            withdrawable,
+        );
+
+        withdrawable
+    }
 }
