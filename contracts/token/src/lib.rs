@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, symbol_short};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, symbol_short, String};
 
 #[contracttype]
 #[derive(Clone)]
@@ -13,6 +13,18 @@ pub struct TokenContract;
 
 #[contractimpl]
 impl TokenContract {
+    pub fn name(env: Env) -> String {
+        String::from_str(&env, "Stream Vault Token")
+    }
+
+    pub fn symbol(env: Env) -> String {
+        String::from_str(&env, "SV")
+    }
+
+    pub fn decimals(_env: Env) -> u32 {
+        7
+    }
+
     pub fn initialize(env: Env, admin: Address) {
         if env.storage().instance().has(&DataKey::Admin) {
             panic!("already initialized");
