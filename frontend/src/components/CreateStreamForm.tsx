@@ -48,7 +48,7 @@ export const CreateStreamForm: React.FC<CreateStreamFormProps> = ({
     }
 
     if (numAmount > balance) {
-      setError(`Insufficient XLM balance. You have ${balance} XLM.`);
+      setError(`Insufficient SV token balance. You have ${balance} SV.`);
       return;
     }
 
@@ -105,7 +105,7 @@ export const CreateStreamForm: React.FC<CreateStreamFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-mono font-bold uppercase tracking-wider text-gray-500 mb-1">
-              Deposit Amount (XLM)
+              Deposit Amount (SV)
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-black">
@@ -145,7 +145,7 @@ export const CreateStreamForm: React.FC<CreateStreamFormProps> = ({
         <div className="p-4 border border-black bg-[#F8F9FA] font-mono text-xs space-y-1.5 text-black">
           <div className="flex justify-between">
             <span className="text-gray-500 uppercase tracking-wider font-bold">Vesting Rate:</span>
-            <span className="font-bold text-black">{ratePerSecond} XLM / sec</span>
+            <span className="font-bold text-black">{ratePerSecond} SV / sec</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 uppercase tracking-wider font-bold">Vesting Style:</span>

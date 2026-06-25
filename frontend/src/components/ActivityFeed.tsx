@@ -72,9 +72,9 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ events }) => {
                     </span>
                   </div>
                   <p className="text-xs text-black font-semibold font-mono">
-                    {event.type === 'created' && `Stream created with ${event.amount} XLM`}
-                    {event.type === 'withdrawn' && `Withdrew ${event.amount.toFixed(2)} XLM`}
-                    {event.type === 'cancelled' && `Stream cancelled (${event.amount.toFixed(2)} XLM returned)`}
+                    {event.type === 'created' && `Stream created with ${event.amount} SV`}
+                    {event.type === 'withdrawn' && `Withdrew ${event.amount.toFixed(2)} SV`}
+                    {event.type === 'cancelled' && `Stream cancelled (${event.amount.toFixed(2)} SV returned)`}
                   </p>
                   <a
                     href={`https://stellar.expert/explorer/testnet/tx/${event.txHash}`}

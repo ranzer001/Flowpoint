@@ -14,6 +14,8 @@ import {
   withdrawFromStream,
   cancelStream,
   StreamInfo,
+  addTokenToWallet,
+  mintTokens,
 } from '../lib/stellar';
 import { ShieldCheck, Flame } from 'lucide-react';
 
@@ -131,6 +133,42 @@ export default function Home() {
     });
   };
 
+  const handleAddToken = async () => {
+    setErrorNotice(null);
+    try {
+      setErrorNotice({
+        message: 'Requesting to add SV to Freighter...',
+        type: 'info',
+      });
+      await addTokenToWallet();
+      setErrorNotice({
+        message: 'SV token successfully added/verified in your Freighter wallet!',
+        type: 'info',
+      });
+    } catch (err) {
+      setErrorNotice(parseError(err));
+    }
+  };
+
+  const handleMintTokens = async () => {
+    if (!address) return;
+    setErrorNotice(null);
+    try {
+      setErrorNotice({
+        message: 'Minting 1000 SV from the testnet faucet... Please wait.',
+        type: 'info',
+      });
+      const txHash = await mintTokens(address, 1000);
+      setErrorNotice({
+        message: `Successfully minted 1000 SV to your wallet! Hash: ${txHash.slice(0, 16)}...`,
+        type: 'info',
+      });
+      await loadBlockchainData(address);
+    } catch (err) {
+      setErrorNotice(parseError(err));
+    }
+  };
+
   const handleCreateStream = async (recipient: string, amount: number, duration: number) => {
     setCreating(true);
     setErrorNotice(null);
@@ -149,7 +187,7 @@ export default function Home() {
       setEvents(prev => [newEvent, ...prev]);
 
       setErrorNotice({
-        message: `Vesting stream of ${amount} XLM initiated successfully! Hash: ${txHash.slice(0, 16)}...`,
+        message: `Vesting stream of ${amount} SV initiated successfully! Hash: ${txHash.slice(0, 16)}...`,
         type: 'info',
       });
 
@@ -243,6 +281,8 @@ export default function Home() {
         onConnect={handleConnect}
         onDisconnect={handleDisconnect}
         onRefreshBalance={() => loadBlockchainData(address)}
+        onAddTokenToWallet={handleAddToken}
+        onMintTokens={handleMintTokens}
       />
 
       {/* Main content grid */}

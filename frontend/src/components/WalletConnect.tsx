@@ -10,6 +10,8 @@ interface WalletConnectProps {
   onConnect: () => void;
   onDisconnect: () => void;
   onRefreshBalance: () => void;
+  onAddTokenToWallet: () => void;
+  onMintTokens: () => void;
 }
 
 export const WalletConnect: React.FC<WalletConnectProps> = ({
@@ -19,6 +21,8 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
   onConnect,
   onDisconnect,
   onRefreshBalance,
+  onAddTokenToWallet,
+  onMintTokens,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b-2 border-black bg-[#F8F9FA] p-6 gap-4">
@@ -49,7 +53,7 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
             <div className="flex items-center gap-2 px-4 py-2 border-2 border-black bg-white font-mono text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               <span className="text-gray-500 uppercase text-[10px] tracking-wider font-bold">Balance:</span>
               <span className="text-black font-black text-base">{balance.toLocaleString()}</span>
-              <span className="text-[#FF5A00] font-black text-xs">XLM</span>
+              <span className="text-[#FF5A00] font-black text-xs">SV</span>
               <button 
                 onClick={onRefreshBalance} 
                 className="ml-1 p-1 hover:bg-gray-100 transition-colors text-black"
@@ -58,6 +62,20 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
                 <RefreshCw size={14} className="stroke-[2]" />
               </button>
             </div>
+
+            <button
+              onClick={onAddTokenToWallet}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-black bg-white text-black font-bold uppercase tracking-wider text-xs hover:bg-black hover:text-[#FF5A00] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              Add SV to Wallet
+            </button>
+
+            <button
+              onClick={onMintTokens}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-black bg-white text-black font-bold uppercase tracking-wider text-xs hover:bg-black hover:text-[#FF5A00] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              Mint 1000 SV (Faucet)
+            </button>
 
             <button
               onClick={onDisconnect}

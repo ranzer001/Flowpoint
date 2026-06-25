@@ -9,7 +9,7 @@ import {
   Operation,
   Transaction,
   Account,
-  Asset,
+  Keypair,
 } from '@stellar/stellar-sdk';
 
 const networkPassphrase = StellarNetworks.TESTNET;
@@ -111,7 +111,7 @@ export async function getTokenBalance(userAddress: string): Promise<number> {
     const sim = await server.simulateTransaction(tx);
     if (rpc.Api.isSimulationSuccess(sim) && sim.result?.retval) {
       const balanceVal = scValToNative(sim.result.retval);
-      return Number(balanceVal);
+      return Number(balanceVal) / 10000000;
     }
     return 0;
   } catch (error) {
@@ -156,10 +156,10 @@ export async function getStreamDetails(streamId: number): Promise<StreamInfo | n
         id: streamId,
         sender: nativeObj.sender,
         recipient: nativeObj.recipient,
-        deposit: Number(nativeObj.deposit),
+        deposit: Number(nativeObj.deposit) / 10000000,
         startTime: Number(nativeObj.start_time),
         duration: Number(nativeObj.duration),
-        withdrawn: Number(nativeObj.withdrawn),
+        withdrawn: Number(nativeObj.withdrawn) / 10000000,
         token: nativeObj.token,
       };
     }
@@ -190,7 +190,7 @@ export async function getVestedAmount(streamId: number): Promise<number> {
 
     const sim = await server.simulateTransaction(tx);
     if (rpc.Api.isSimulationSuccess(sim) && sim.result?.retval) {
-      return Number(scValToNative(sim.result.retval));
+      return Number(scValToNative(sim.result.retval)) / 10000000;
     }
     return 0;
   } catch (error) {
@@ -292,7 +292,7 @@ export async function createStream(
       new Address(sender).toScVal(),
       new Address(recipient).toScVal(),
       new Address(tokenContractAddress).toScVal(),
-      nativeToScVal(BigInt(deposit), { type: 'i128' }),
+      nativeToScVal(BigInt(Math.floor(deposit * 10000000)), { type: 'i128' }),
       nativeToScVal(BigInt(duration), { type: 'u64' }),
     ],
   });
@@ -326,35 +326,51 @@ export async function cancelStream(
   return prepareAndSubmitTx(sender, operation);
 }
 
-export async function addTrustline(userAddress: string): Promise<string> {
-  await initKit();
-  const mod = await getWalletKitModule();
-  if (!mod) throw new Error('Wallet kit not available');
+export async function addTokenToWallet(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  const { addToken, getNetwork } = await import('@stellar/freighter-api');
+  
+  // Pre-validate that Freighter wallet network is set to Testnet
+  const networkDetails = await getNetwork();
+  if (networkDetails.network !== 'TESTNET') {
+    throw new Error('Freighter network is not set to TESTNET. Please set your Freighter wallet network to Testnet first.');
+  }
 
-  const sourceAccount = await server.getAccount(userAddress);
-  const issuerAddress = 'GAVAX3CT3G2XGKNXLMAP6R6IGRVQJHP6CBVOKNJVEWXONO2ZPQYPBXCM';
-  const asset = new Asset('SV', issuerAddress);
+  await addToken({
+    contractId: tokenContractAddress,
+    networkPassphrase: networkPassphrase,
+  });
+}
 
+export async function mintTokens(recipient: string, amount: number): Promise<string> {
+  const adminSecret = process.env.NEXT_PUBLIC_DEPLOYER_SECRET || 'SACHTEYLV64OD2RPCVQ2VIKKGMFVJ7S5UY45TV23DZKXYPG5CCGYPOP4';
+  const adminKeypair = Keypair.fromSecret(adminSecret);
+  const adminAddress = adminKeypair.publicKey();
+
+  const operation = Operation.invokeContractFunction({
+    contract: tokenContractAddress,
+    function: 'mint',
+    args: [
+      new Address(recipient).toScVal(),
+      nativeToScVal(BigInt(Math.floor(amount * 10000000)), { type: 'i128' }),
+    ],
+  });
+
+  const sourceAccount = await server.getAccount(adminAddress);
   let tx = new TransactionBuilder(sourceAccount, {
     networkPassphrase,
     fee: '500',
   })
-    .addOperation(Operation.changeTrust({ asset, limit: '1000000' }))
+    .addOperation(operation)
     .setTimeout(60)
     .build();
 
   tx = await server.prepareTransaction(tx);
+  tx.sign(adminKeypair);
 
-  const { signedTxXdr } = await mod.StellarWalletsKit.signTransaction(tx.toXDR(), {
-    networkPassphrase,
-    address: userAddress,
-  });
-
-  const signedTx = TransactionBuilder.fromXDR(signedTxXdr, networkPassphrase) as Transaction;
-  const submitResult = await server.sendTransaction(signedTx);
-
+  const submitResult = await server.sendTransaction(tx);
   if (submitResult.status === 'ERROR') {
-    throw new Error((submitResult as any).errorResultXdr || 'Transaction rejected by network');
+    throw new Error((submitResult as any).errorResultXdr || 'Mint transaction failed');
   }
 
   let status: any = submitResult.status;
@@ -368,7 +384,7 @@ export async function addTrustline(userAddress: string): Promise<string> {
       return txHash;
     }
     if (status === 'FAILED') {
-      throw new Error('Trustline creation failed on chain');
+      throw new Error('Minting failed on chain');
     }
   }
 
