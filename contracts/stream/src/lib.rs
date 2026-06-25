@@ -1,0 +1,88 @@
+#![no_std]
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, Vec};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Stream {
+    pub sender: Address,
+    pub recipient: Address,
+    pub deposit: i128,
+    pub start_time: u64,
+    pub duration: u64,
+    pub withdrawn: i128,
+    pub token: Address,
+}
+
+#[contract]
+pub struct StreamContract;
+
+#[contractimpl]
+impl StreamContract {
+    pub fn create_stream(
+        env: Env,
+        sender: Address,
+        recipient: Address,
+        token: Address,
+        deposit: i128,
+        duration: u64,
+    ) -> u64 {
+        sender.require_auth();
+        if deposit <= 0 {
+            panic!("deposit must be positive");
+        }
+        if duration <= 0 {
+            panic!("duration must be positive");
+        }
+
+        let mut counter = env.storage().instance().get(&Symbol::new(&env, "counter")).unwrap_or(0u64);
+        counter += 1;
+        env.storage().instance().set(&Symbol::new(&env, "counter"), &counter);
+
+        let stream = Stream {
+            sender: sender.clone(),
+            recipient: recipient.clone(),
+            deposit,
+            start_time: env.ledger().timestamp(),
+            duration,
+            withdrawn: 0,
+            token: token.clone(),
+        };
+
+        env.storage().persistent().set(&counter, &stream);
+
+        // Index the stream ID for the sender
+        let mut sender_streams: Vec<u64> = env
+            .storage()
+            .persistent()
+            .get(&(Symbol::new(&env, "sender_streams"), sender.clone()))
+            .unwrap_or(Vec::new(&env));
+        sender_streams.push_back(counter);
+        env.storage().persistent().set(&(Symbol::new(&env, "sender_streams"), sender.clone()), &sender_streams);
+
+        // Index the stream ID for the recipient
+        if sender != recipient {
+            let mut recipient_streams: Vec<u64> = env
+                .storage()
+                .persistent()
+                .get(&(Symbol::new(&env, "recipient_streams"), recipient.clone()))
+                .unwrap_or(Vec::new(&env));
+            recipient_streams.push_back(counter);
+            env.storage().persistent().set(&(Symbol::new(&env, "recipient_streams"), recipient.clone()), &recipient_streams);
+        }
+
+        // Perform inter-contract call to lock deposit
+        let token_client = soroban_sdk::token::Client::new(&env, &token);
+        token_client.transfer(&sender, &env.current_contract_address(), &deposit);
+
+        env.events().publish(
+            (Symbol::new(&env, "stream_created"), counter, sender, recipient),
+            deposit,
+        );
+
+        counter
+    }
+
+    pub fn get_stream(env: Env, stream_id: u64) -> Stream {
+        env.storage().persistent().get(&stream_id).expect("stream not found")
+    }
+}
