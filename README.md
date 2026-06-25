@@ -267,27 +267,17 @@ Also caught at the contract level if the balance check fails post-submission.
 
 ## 📸 Screenshots
 
-### Initial Page Load (Wallet Disconnected)
-![Initial page load](screenshots/initial_page_load.png)
-
 ### Wallet Connection Modal (StellarWalletsKit)
-![Wallet connect modal](screenshots/wallet_connect_modal.png)
+![Wallet connection modal](screenshots/wallet%20connect.png)
 
-### Error Handling Banners
-![Error handling banner](screenshots/error_handling_banner.png)
+### Sender Dashboard — Create Stream & Active Streams
+![Sender homepage](screenshots/sender_homepage.png)
 
-### App UI Flow (Animated)
-![Interactive flow recording](screenshots/app_ui_flow.webp)
+### Recipient Dashboard — Live Vesting Ticker & Withdraw
+![Receiver homepage](screenshots/receiver_homepage.png)
 
----
-
-> **📌 Note for reviewers:** The following screenshots require a live connected wallet session and will be added after live demo capture. They are listed here for completeness per the submission checklist:
-> - **Wallet connected state** — top nav bar with truncated address + green pulse + SV balance
-> - **Stream creation flow** — filled form with recipient, amount, duration before submit
-> - **Live vesting ticker / dashboard** — stream cards showing the live ticker counting up with progress bar
-> - **Successful withdrawal + tx confirmation** — success banner with tx hash linking to Stellar Expert
-> - **Mobile responsive UI** — stacked card layout at ~375px (iPhone SE)
-> - **CI/CD pipeline run** — GitHub Actions tab showing green checks on all 5 jobs
+### Full App Demo (Animated)
+![App demo flow](screenshots/demo_video.gif)
 
 ### Test Output (11 passing tests)
 
