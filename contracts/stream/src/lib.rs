@@ -85,4 +85,16 @@ impl StreamContract {
     pub fn get_stream(env: Env, stream_id: u64) -> Stream {
         env.storage().persistent().get(&stream_id).expect("stream not found")
     }
+
+    pub fn vested_amount(env: Env, stream_id: u64) -> i128 {
+        let stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        let now = env.ledger().timestamp();
+        let elapsed = now.saturating_sub(stream.start_time);
+        
+        if elapsed >= stream.duration {
+            stream.deposit
+        } else {
+            stream.deposit * (elapsed as i128) / (stream.duration as i128)
+        }
+    }
 }
