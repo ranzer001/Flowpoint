@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, ArrowDownLeft, Clock, Power, ShieldAlert, Award } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Power, ShieldAlert } from 'lucide-react';
 import { StreamInfo } from '../lib/stellar';
 
 interface StreamCardProps {

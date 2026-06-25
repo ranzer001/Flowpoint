@@ -1,48 +1,93 @@
-import {
-  StellarWalletsKit,
-  WalletNetwork,
-  FREIGHTER_ID,
-  FreighterModule,
-} from '@creit.tech/stellar-wallets-kit';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   rpc,
   Address,
   scValToNative,
   nativeToScVal,
   TransactionBuilder,
-  Networks,
+  Networks as StellarNetworks,
   Operation,
   Transaction,
   Account,
 } from '@stellar/stellar-sdk';
 
-const networkPassphrase = Networks.TESTNET;
+const networkPassphrase = StellarNetworks.TESTNET;
 const rpcUrl = process.env.NEXT_PUBLIC_STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org:443';
 export const tokenContractAddress = process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS || '';
 export const streamContractAddress = process.env.NEXT_PUBLIC_STREAM_CONTRACT_ADDRESS || '';
 
 export const server = new rpc.Server(rpcUrl);
 
-let kitInstance: StellarWalletsKit | null = null;
+let initialized = false;
+let kitModule: any = null;
 
-export function getKit(): StellarWalletsKit {
-  if (typeof window === 'undefined') {
-    throw new Error('Wallet kit can only be initialized on the client side');
+async function getWalletKitModule() {
+  if (typeof window === 'undefined') return null;
+  if (!kitModule) {
+    try {
+      const kit = await import('@creit.tech/stellar-wallets-kit');
+      const utils = await import('@creit.tech/stellar-wallets-kit/modules/utils');
+      const types = await import('@creit.tech/stellar-wallets-kit/types');
+      kitModule = {
+        StellarWalletsKit: kit.StellarWalletsKit,
+        defaultModules: utils.defaultModules,
+        Networks: types.Networks,
+      };
+    } catch (err) {
+      console.error('Failed to dynamically load stellar-wallets-kit:', err);
+    }
   }
-  if (!kitInstance) {
-    kitInstance = new StellarWalletsKit({
-      network: WalletNetwork.TESTNET,
-      selectedWalletId: FREIGHTER_ID,
-      modules: [new FreighterModule()],
-    });
+  return kitModule;
+}
+
+export async function initKit() {
+  if (typeof window === 'undefined') return;
+  if (!initialized) {
+    const mod = await getWalletKitModule();
+    if (mod) {
+      mod.StellarWalletsKit.init({
+        modules: mod.defaultModules(),
+        network: mod.Networks.TESTNET,
+      });
+      initialized = true;
+    }
   }
-  return kitInstance;
 }
 
 export async function connectWallet(): Promise<string> {
-  const kit = getKit();
-  const { address } = await kit.getAddress();
-  return address;
+  await initKit();
+  const mod = await getWalletKitModule();
+  if (!mod) throw new Error('Wallet kit not available on server');
+  try {
+    const { address } = await mod.StellarWalletsKit.authModal();
+    return address;
+  } catch (error) {
+    console.error('Wallet connection rejected or closed:', error);
+    throw error;
+  }
+}
+
+export async function getConnectedAddress(): Promise<string> {
+  await initKit();
+  const mod = await getWalletKitModule();
+  if (!mod) return '';
+  try {
+    const { address } = await mod.StellarWalletsKit.getAddress();
+    return address;
+  } catch {
+    return '';
+  }
+}
+
+export async function disconnectWallet(): Promise<void> {
+  await initKit();
+  const mod = await getWalletKitModule();
+  if (!mod) return;
+  try {
+    await mod.StellarWalletsKit.disconnect();
+  } catch (error) {
+    console.error('Disconnect error:', error);
+  }
 }
 
 export async function getTokenBalance(userAddress: string): Promise<number> {
@@ -56,7 +101,7 @@ export async function getTokenBalance(userAddress: string): Promise<number> {
 
     const tx = new TransactionBuilder(
       new Account(userAddress, '0'),
-      { networkPassphrase }
+      { networkPassphrase, fee: '100' }
     )
       .addOperation(operation)
       .setTimeout(30)
@@ -88,7 +133,7 @@ export interface StreamInfo {
 export async function getStreamDetails(streamId: number): Promise<StreamInfo | null> {
   if (!streamContractAddress) return null;
   try {
-    const dummyAccount = 'GAVAX3CT3G2XGKNXLMAP6R6IGRVQJHP6CBVOKNJVEWXONO2ZPQYPBXCM'; // deployer public key
+    const dummyAccount = 'GAVAX3CT3G2XGKNXLMAP6R6IGRVQJHP6CBVOKNJVEWXONO2ZPQYPBXCM';
     const operation = Operation.invokeContractFunction({
       contract: streamContractAddress,
       function: 'get_stream',
@@ -97,7 +142,7 @@ export async function getStreamDetails(streamId: number): Promise<StreamInfo | n
 
     const tx = new TransactionBuilder(
       new Account(dummyAccount, '0'),
-      { networkPassphrase }
+      { networkPassphrase, fee: '100' }
     )
       .addOperation(operation)
       .setTimeout(30)
@@ -136,7 +181,7 @@ export async function getVestedAmount(streamId: number): Promise<number> {
 
     const tx = new TransactionBuilder(
       new Account(dummyAccount, '0'),
-      { networkPassphrase }
+      { networkPassphrase, fee: '100' }
     )
       .addOperation(operation)
       .setTimeout(30)
@@ -164,7 +209,7 @@ export async function listStreamsFor(userAddress: string): Promise<number[]> {
 
     const tx = new TransactionBuilder(
       new Account(userAddress, '0'),
-      { networkPassphrase }
+      { networkPassphrase, fee: '100' }
     )
       .addOperation(operation)
       .setTimeout(30)
@@ -186,8 +231,12 @@ export async function listStreamsFor(userAddress: string): Promise<number[]> {
 
 async function prepareAndSubmitTx(
   userAddress: string,
-  operation: xdr.Operation
+  operation: any
 ): Promise<string> {
+  await initKit();
+  const mod = await getWalletKitModule();
+  if (!mod) throw new Error('Wallet kit not available');
+
   const sourceAccount = await server.getAccount(userAddress);
   let tx = new TransactionBuilder(sourceAccount, {
     networkPassphrase,
@@ -199,8 +248,7 @@ async function prepareAndSubmitTx(
 
   tx = await server.prepareTransaction(tx);
 
-  const kit = getKit();
-  const { signedTxXdr } = await kit.signTransaction(tx.toXDR(), {
+  const { signedTxXdr } = await mod.StellarWalletsKit.signTransaction(tx.toXDR(), {
     networkPassphrase,
     address: userAddress,
   });
@@ -209,11 +257,11 @@ async function prepareAndSubmitTx(
   const submitResult = await server.sendTransaction(signedTx);
 
   if (submitResult.status === 'ERROR') {
-    throw new Error(submitResult.errorResult?.result?.switch?.name || 'Transaction rejected by network');
+    throw new Error((submitResult as any).errorResultXdr || (submitResult as any).errorResult?.result?.switch?.name || 'Transaction rejected by network');
   }
 
-  let status = submitResult.status;
-  let txHash = submitResult.hash;
+  let status: any = submitResult.status;
+  const txHash = submitResult.hash;
 
   while (status === 'PENDING') {
     await new Promise((resolve) => setTimeout(resolve, 1500));

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Clock, DollarSign, User } from 'lucide-react';
+import { Send, Clock, DollarSign, User, RefreshCw } from 'lucide-react';
 import { StrKey } from '@stellar/stellar-sdk';
 
 interface CreateStreamFormProps {
@@ -62,8 +62,8 @@ export const CreateStreamForm: React.FC<CreateStreamFormProps> = ({
       await onSubmit(recipient, numAmount, numDuration);
       setRecipient('');
       setAmount('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit transaction.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit transaction.');
     }
   };
 
@@ -174,24 +174,3 @@ export const CreateStreamForm: React.FC<CreateStreamFormProps> = ({
     </div>
   );
 };
-
-// Helper for spinner
-const RefreshCw: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-    <path d="M21 3v5h-5" />
-    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-    <path d="M3 21v-5h5" />
-  </svg>
-);

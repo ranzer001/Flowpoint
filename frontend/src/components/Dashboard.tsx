@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { StreamInfo } from '../lib/stellar';
 import { StreamCard } from './StreamCard';
-import { Inbox, Outbox, Columns } from 'lucide-react';
+import { Columns, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
 interface DashboardProps {
   streams: StreamInfo[];
@@ -55,7 +55,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             activeTab === 'sent' ? 'bg-black text-white' : 'hover:bg-gray-100 text-black'
           }`}
         >
-          <Inbox size={14} />
+          <ArrowUpRight size={14} />
           Sent ({sentStreams.length})
         </button>
         <button
@@ -64,7 +64,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             activeTab === 'received' ? 'bg-black text-white' : 'hover:bg-gray-100 text-black'
           }`}
         >
-          <Outbox size={14} />
+          <ArrowDownLeft size={14} />
           Received ({receivedStreams.length})
         </button>
       </div>
