@@ -1,0 +1,9 @@
+name = "flowpoint"
+compatibility_date = "2026-06-25"
+
+[build]
+command = "npm run build"
+cwd = "frontend"
+
+[assets]
+directory = "./frontend/out"
