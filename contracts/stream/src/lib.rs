@@ -122,4 +122,68 @@ impl StreamContract {
 
         withdrawable
     }
+
+    pub fn cancel_stream(env: Env, stream_id: u64) {
+        let stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        stream.sender.require_auth();
+
+        let vested = Self::vested_amount(env.clone(), stream_id);
+        let to_recipient = vested - stream.withdrawn;
+        let to_sender = stream.deposit - vested;
+
+        let token_client = soroban_sdk::token::Client::new(&env, &stream.token);
+
+        if to_recipient > 0 {
+            token_client.transfer(&env.current_contract_address(), &stream.recipient, &to_recipient);
+        }
+
+        if to_sender > 0 {
+            token_client.transfer(&env.current_contract_address(), &stream.sender, &to_sender);
+        }
+
+        // Cancelled stream is updated so that deposit = vested and duration = elapsed
+        let now = env.ledger().timestamp();
+        let elapsed = now.saturating_sub(stream.start_time);
+        let mut updated_stream = stream.clone();
+        updated_stream.deposit = vested;
+        updated_stream.duration = elapsed.max(1);
+        updated_stream.withdrawn = vested;
+        env.storage().persistent().set(&stream_id, &updated_stream);
+
+        env.events().publish(
+            (Symbol::new(&env, "stream_cancelled"), stream_id, stream.sender.clone()),
+            to_sender,
+        );
+    }
+
+    pub fn list_streams_for(env: Env, address: Address) -> Vec<u64> {
+        let sender_streams: Vec<u64> = env
+            .storage()
+            .persistent()
+            .get(&(Symbol::new(&env, "sender_streams"), address.clone()))
+            .unwrap_or(Vec::new(&env));
+        let recipient_streams: Vec<u64> = env
+            .storage()
+            .persistent()
+            .get(&(Symbol::new(&env, "recipient_streams"), address.clone()))
+            .unwrap_or(Vec::new(&env));
+
+        let mut result = Vec::new(&env);
+        for id in sender_streams.iter() {
+            result.push_back(id);
+        }
+        for id in recipient_streams.iter() {
+            let mut duplicate = false;
+            for r_id in result.iter() {
+                if r_id == id {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if !duplicate {
+                result.push_back(id);
+            }
+        }
+        result
+    }
 }
