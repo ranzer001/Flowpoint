@@ -9,6 +9,7 @@ import {
   Operation,
   Transaction,
   Account,
+  Asset,
 } from '@stellar/stellar-sdk';
 
 const networkPassphrase = StellarNetworks.TESTNET;
@@ -323,4 +324,53 @@ export async function cancelStream(
   });
 
   return prepareAndSubmitTx(sender, operation);
+}
+
+export async function addTrustline(userAddress: string): Promise<string> {
+  await initKit();
+  const mod = await getWalletKitModule();
+  if (!mod) throw new Error('Wallet kit not available');
+
+  const sourceAccount = await server.getAccount(userAddress);
+  const issuerAddress = 'GAVAX3CT3G2XGKNXLMAP6R6IGRVQJHP6CBVOKNJVEWXONO2ZPQYPBXCM';
+  const asset = new Asset('SV', issuerAddress);
+
+  let tx = new TransactionBuilder(sourceAccount, {
+    networkPassphrase,
+    fee: '500',
+  })
+    .addOperation(Operation.changeTrust({ asset, limit: '1000000' }))
+    .setTimeout(60)
+    .build();
+
+  tx = await server.prepareTransaction(tx);
+
+  const { signedTxXdr } = await mod.StellarWalletsKit.signTransaction(tx.toXDR(), {
+    networkPassphrase,
+    address: userAddress,
+  });
+
+  const signedTx = TransactionBuilder.fromXDR(signedTxXdr, networkPassphrase) as Transaction;
+  const submitResult = await server.sendTransaction(signedTx);
+
+  if (submitResult.status === 'ERROR') {
+    throw new Error((submitResult as any).errorResultXdr || 'Transaction rejected by network');
+  }
+
+  let status: any = submitResult.status;
+  const txHash = submitResult.hash;
+
+  while (status === 'PENDING') {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const txStatus = await server.getTransaction(txHash);
+    status = txStatus.status;
+    if (status === 'SUCCESS') {
+      return txHash;
+    }
+    if (status === 'FAILED') {
+      throw new Error('Trustline creation failed on chain');
+    }
+  }
+
+  return txHash;
 }

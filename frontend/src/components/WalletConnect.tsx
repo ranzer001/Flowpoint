@@ -10,6 +10,7 @@ interface WalletConnectProps {
   onConnect: () => void;
   onDisconnect: () => void;
   onRefreshBalance: () => void;
+  onAddTrustline: () => void;
 }
 
 export const WalletConnect: React.FC<WalletConnectProps> = ({
@@ -19,6 +20,7 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
   onConnect,
   onDisconnect,
   onRefreshBalance,
+  onAddTrustline,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b-2 border-black bg-[#F8F9FA] p-6 gap-4">
@@ -60,23 +62,10 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
             </div>
 
             <button
-              onClick={async () => {
-                if (typeof window === 'undefined') return;
-                try {
-                  const { addToken } = await import('@stellar/freighter-api');
-                  const contractId = process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS || 'CBE6EUK2MXBDXLMWOSD6Y4DQCJOUAMEA5LFIWJCWJ5XQ5FZT4YXDHOTD';
-                  const networkPassphrase = 'Test SDF Network ; September 2015';
-                  await addToken({
-                    contractId,
-                    networkPassphrase,
-                  });
-                } catch (error) {
-                  console.error('Failed to add token to Freighter:', error);
-                }
-              }}
+              onClick={onAddTrustline}
               className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-black bg-white text-black font-bold uppercase tracking-wider text-xs hover:bg-black hover:text-[#FF5A00] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
             >
-              Add SV to Wallet
+              Add Trustline
             </button>
 
             <button
