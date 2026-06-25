@@ -97,7 +97,7 @@ export const StreamCard: React.FC<StreamCardProps> = ({
             <span className="text-3xl font-black tabular-nums text-black tracking-tight">
               {liveVested.toFixed(4)}
             </span>
-            <span className="text-xs font-bold text-gray-500">/ {stream.deposit.toFixed(0)} SV</span>
+            <span className="text-xs font-bold text-gray-500">/ {stream.deposit.toFixed(0)} XLM</span>
           </div>
         </div>
 
@@ -119,11 +119,11 @@ export const StreamCard: React.FC<StreamCardProps> = ({
         <div className="p-3 border border-dashed border-black bg-[#FFFDF5] font-mono text-xs space-y-1 text-black">
           <div className="flex justify-between">
             <span className="text-gray-500 font-bold uppercase">Withdrawn:</span>
-            <span className="font-bold">{stream.withdrawn.toFixed(2)} SV</span>
+            <span className="font-bold">{stream.withdrawn.toFixed(2)} XLM</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 font-bold uppercase">Withdrawable:</span>
-            <span className="font-bold text-[#FF5A00]">{withdrawable.toFixed(4)} SV</span>
+            <span className="font-bold text-[#FF5A00]">{withdrawable.toFixed(4)} XLM</span>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export const StreamCard: React.FC<StreamCardProps> = ({
             disabled={loadingWithdraw || withdrawable <= 0 || isCompleted}
             className="flex-grow flex items-center justify-center gap-2 py-2.5 border-2 border-black bg-black text-white font-bold uppercase tracking-wider text-xs hover:bg-[#FF5A00] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loadingWithdraw ? 'Withdrawing...' : isCompleted ? 'Completed' : `Withdraw ${withdrawable.toFixed(2)} SV`}
+            {loadingWithdraw ? 'Withdrawing...' : isCompleted ? 'Completed' : `Withdraw ${withdrawable.toFixed(2)} XLM`}
           </button>
         ) : (
           <div className="flex-grow flex items-center justify-center gap-1.5 py-2.5 border border-dashed border-gray-400 bg-gray-50 font-mono text-[10px] text-gray-500 font-bold uppercase">

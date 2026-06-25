@@ -14,7 +14,6 @@ import {
   withdrawFromStream,
   cancelStream,
   StreamInfo,
-  addTrustline,
 } from '../lib/stellar';
 import { ShieldCheck, Flame } from 'lucide-react';
 
@@ -132,25 +131,6 @@ export default function Home() {
     });
   };
 
-  const handleAddTrustline = async () => {
-    if (!address) return;
-    setErrorNotice(null);
-    try {
-      setErrorNotice({
-        message: 'Requesting trustline creation... Please approve in your wallet.',
-        type: 'info',
-      });
-      const txHash = await addTrustline(address);
-      setErrorNotice({
-        message: `Trustline established successfully! Hash: ${txHash.slice(0, 16)}...`,
-        type: 'info',
-      });
-      await loadBlockchainData(address);
-    } catch (err) {
-      setErrorNotice(parseError(err));
-    }
-  };
-
   const handleCreateStream = async (recipient: string, amount: number, duration: number) => {
     setCreating(true);
     setErrorNotice(null);
@@ -169,7 +149,7 @@ export default function Home() {
       setEvents(prev => [newEvent, ...prev]);
 
       setErrorNotice({
-        message: `Vesting stream of ${amount} SV initiated successfully! Hash: ${txHash.slice(0, 16)}...`,
+        message: `Vesting stream of ${amount} XLM initiated successfully! Hash: ${txHash.slice(0, 16)}...`,
         type: 'info',
       });
 
@@ -263,7 +243,6 @@ export default function Home() {
         onConnect={handleConnect}
         onDisconnect={handleDisconnect}
         onRefreshBalance={() => loadBlockchainData(address)}
-        onAddTrustline={handleAddTrustline}
       />
 
       {/* Main content grid */}
