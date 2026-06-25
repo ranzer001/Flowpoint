@@ -4,9 +4,8 @@
 [![Stellar Testnet](https://img.shields.io/badge/Stellar-Testnet-blue.svg)](https://stellar.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Live Demo: `PENDING — deploy to Vercel/Netlify using target/`
-Demo Video: `PENDING — record live video after local setup`
-
+Live Demo: 
+Demo Video: 
 ## Project Description
 
 **Payment Streaming Vault** is a secure, production-grade Stellar Soroban decentralized application (dApp) that implements real-time token vesting. Users can initiate vesting streams by locking a specified amount of custom tokens (`SV`). The locked tokens vest linearly to the recipient over a designated duration. 
