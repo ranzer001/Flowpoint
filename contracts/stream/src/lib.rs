@@ -187,3 +187,5 @@ impl StreamContract {
         result
     }
 }
+
+mod test;
