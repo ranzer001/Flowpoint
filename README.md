@@ -1,6 +1,6 @@
 # Payment Streaming Vault
 
-[![CI](https://github.com/anurag/payment-streaming-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/anurag/payment-streaming-vault/actions/workflows/ci.yml)
+[![CI](https://github.com/ranzer001/Flowpoint/actions/workflows/ci.yml/badge.svg)](https://github.com/ranzer001/Flowpoint/actions/workflows/ci.yml)
 [![Stellar Testnet](https://img.shields.io/badge/Stellar-Testnet-blue.svg)](https://stellar.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -151,8 +151,8 @@ test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 ### Clone and Install
 ```bash
-git clone https://github.com/anurag/payment-streaming-vault.git
-cd payment-streaming-vault
+git clone https://github.com/ranzer001/Flowpoint.git
+cd Flowpoint
 cd frontend
 npm install
 ```
