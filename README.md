@@ -11,7 +11,7 @@
 
 **Real-time token vesting on Stellar — powered by Soroban smart contracts with live inter-contract calls.**
 
-🌐 **[Live Demo →](https://flowpoint.harshitasingh001.workers.dev/)**  &nbsp;|&nbsp; 
+🌐 **[Live Demo →](https://flowpoint.harshitasingh001.workers.dev/)**
 
 </div>
 
