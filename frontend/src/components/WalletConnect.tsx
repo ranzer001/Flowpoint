@@ -60,6 +60,26 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
             </div>
 
             <button
+              onClick={async () => {
+                if (typeof window === 'undefined') return;
+                try {
+                  const { addToken } = await import('@stellar/freighter-api');
+                  const contractId = process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS || 'CBE6EUK2MXBDXLMWOSD6Y4DQCJOUAMEA5LFIWJCWJ5XQ5FZT4YXDHOTD';
+                  const networkPassphrase = 'Test SDF Network ; September 2015';
+                  await addToken({
+                    contractId,
+                    networkPassphrase,
+                  });
+                } catch (error) {
+                  console.error('Failed to add token to Freighter:', error);
+                }
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-black bg-white text-black font-bold uppercase tracking-wider text-xs hover:bg-black hover:text-[#FF5A00] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              Add SV to Wallet
+            </button>
+
+            <button
               onClick={onDisconnect}
               className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-black bg-[#FF5A00] text-black font-bold uppercase tracking-wider text-xs hover:bg-black hover:text-[#FF5A00] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
             >
