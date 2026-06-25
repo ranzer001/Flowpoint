@@ -34,9 +34,15 @@ impl StreamContract {
             panic!("duration must be positive");
         }
 
-        let mut counter = env.storage().instance().get(&Symbol::new(&env, "counter")).unwrap_or(0u64);
+        let mut counter = env
+            .storage()
+            .instance()
+            .get(&Symbol::new(&env, "counter"))
+            .unwrap_or(0u64);
         counter += 1;
-        env.storage().instance().set(&Symbol::new(&env, "counter"), &counter);
+        env.storage()
+            .instance()
+            .set(&Symbol::new(&env, "counter"), &counter);
 
         let stream = Stream {
             sender: sender.clone(),
@@ -57,7 +63,10 @@ impl StreamContract {
             .get(&(Symbol::new(&env, "sender_streams"), sender.clone()))
             .unwrap_or(Vec::new(&env));
         sender_streams.push_back(counter);
-        env.storage().persistent().set(&(Symbol::new(&env, "sender_streams"), sender.clone()), &sender_streams);
+        env.storage().persistent().set(
+            &(Symbol::new(&env, "sender_streams"), sender.clone()),
+            &sender_streams,
+        );
 
         // Index the stream ID for the recipient
         if sender != recipient {
@@ -67,7 +76,10 @@ impl StreamContract {
                 .get(&(Symbol::new(&env, "recipient_streams"), recipient.clone()))
                 .unwrap_or(Vec::new(&env));
             recipient_streams.push_back(counter);
-            env.storage().persistent().set(&(Symbol::new(&env, "recipient_streams"), recipient.clone()), &recipient_streams);
+            env.storage().persistent().set(
+                &(Symbol::new(&env, "recipient_streams"), recipient.clone()),
+                &recipient_streams,
+            );
         }
 
         // Perform inter-contract call to lock deposit
@@ -75,7 +87,12 @@ impl StreamContract {
         token_client.transfer(&sender, &env.current_contract_address(), &deposit);
 
         env.events().publish(
-            (Symbol::new(&env, "stream_created"), counter, sender, recipient),
+            (
+                Symbol::new(&env, "stream_created"),
+                counter,
+                sender,
+                recipient,
+            ),
             deposit,
         );
 
@@ -83,14 +100,21 @@ impl StreamContract {
     }
 
     pub fn get_stream(env: Env, stream_id: u64) -> Stream {
-        env.storage().persistent().get(&stream_id).expect("stream not found")
+        env.storage()
+            .persistent()
+            .get(&stream_id)
+            .expect("stream not found")
     }
 
     pub fn vested_amount(env: Env, stream_id: u64) -> i128 {
-        let stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        let stream: Stream = env
+            .storage()
+            .persistent()
+            .get(&stream_id)
+            .expect("stream not found");
         let now = env.ledger().timestamp();
         let elapsed = now.saturating_sub(stream.start_time);
-        
+
         if elapsed >= stream.duration {
             stream.deposit
         } else {
@@ -99,7 +123,11 @@ impl StreamContract {
     }
 
     pub fn withdraw(env: Env, stream_id: u64) -> i128 {
-        let mut stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        let mut stream: Stream = env
+            .storage()
+            .persistent()
+            .get(&stream_id)
+            .expect("stream not found");
         stream.recipient.require_auth();
 
         let vested = Self::vested_amount(env.clone(), stream_id);
@@ -113,10 +141,18 @@ impl StreamContract {
 
         // Perform inter-contract transfer to recipient
         let token_client = soroban_sdk::token::Client::new(&env, &stream.token);
-        token_client.transfer(&env.current_contract_address(), &stream.recipient, &withdrawable);
+        token_client.transfer(
+            &env.current_contract_address(),
+            &stream.recipient,
+            &withdrawable,
+        );
 
         env.events().publish(
-            (Symbol::new(&env, "withdrawal"), stream_id, stream.recipient.clone()),
+            (
+                Symbol::new(&env, "withdrawal"),
+                stream_id,
+                stream.recipient.clone(),
+            ),
             withdrawable,
         );
 
@@ -124,7 +160,11 @@ impl StreamContract {
     }
 
     pub fn cancel_stream(env: Env, stream_id: u64) {
-        let stream: Stream = env.storage().persistent().get(&stream_id).expect("stream not found");
+        let stream: Stream = env
+            .storage()
+            .persistent()
+            .get(&stream_id)
+            .expect("stream not found");
         stream.sender.require_auth();
 
         let vested = Self::vested_amount(env.clone(), stream_id);
@@ -134,7 +174,11 @@ impl StreamContract {
         let token_client = soroban_sdk::token::Client::new(&env, &stream.token);
 
         if to_recipient > 0 {
-            token_client.transfer(&env.current_contract_address(), &stream.recipient, &to_recipient);
+            token_client.transfer(
+                &env.current_contract_address(),
+                &stream.recipient,
+                &to_recipient,
+            );
         }
 
         if to_sender > 0 {
@@ -151,7 +195,11 @@ impl StreamContract {
         env.storage().persistent().set(&stream_id, &updated_stream);
 
         env.events().publish(
-            (Symbol::new(&env, "stream_cancelled"), stream_id, stream.sender.clone()),
+            (
+                Symbol::new(&env, "stream_cancelled"),
+                stream_id,
+                stream.sender.clone(),
+            ),
             to_sender,
         );
     }

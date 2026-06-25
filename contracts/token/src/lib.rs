@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, symbol_short, String};
+use soroban_sdk::{
+    contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
+};
 
 #[contracttype]
 #[derive(Clone)]
@@ -33,11 +35,17 @@ impl TokenContract {
     }
 
     pub fn admin(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Admin).expect("admin not set")
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .expect("admin not set")
     }
 
     pub fn balance(env: Env, id: Address) -> i128 {
-        env.storage().persistent().get(&DataKey::Balance(id)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::Balance(id))
+            .unwrap_or(0)
     }
 
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
@@ -49,16 +57,18 @@ impl TokenContract {
         if from_balance < amount {
             panic!("insufficient balance");
         }
-        
-        env.storage().persistent().set(&DataKey::Balance(from.clone()), &(from_balance - amount));
-        
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(from.clone()), &(from_balance - amount));
+
         let to_balance = Self::balance(env.clone(), to.clone());
-        env.storage().persistent().set(&DataKey::Balance(to.clone()), &(to_balance + amount));
-        
-        env.events().publish(
-            (symbol_short!("transfer"), from, to),
-            amount
-        );
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone()), &(to_balance + amount));
+
+        env.events()
+            .publish((symbol_short!("transfer"), from, to), amount);
     }
 
     pub fn mint(env: Env, to: Address, amount: i128) {
@@ -68,11 +78,13 @@ impl TokenContract {
             panic!("amount must be positive");
         }
         let balance = Self::balance(env.clone(), to.clone());
-        env.storage().persistent().set(&DataKey::Balance(to.clone()), &(balance + amount));
-        
-        env.events().publish(
-            (Symbol::new(&env, "mint"), to),
-            amount
-        );
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone()), &(balance + amount));
+
+        env.events()
+            .publish((Symbol::new(&env, "mint"), to), amount);
     }
 }
+
+mod test;
