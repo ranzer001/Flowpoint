@@ -33,7 +33,27 @@ export default function Home() {
 
   // Parse error messages into user-friendly notices
   const parseError = (err: unknown) => {
-    const msg = err instanceof Error ? err.message : String(err);
+    let msg = '';
+    if (err instanceof Error) {
+      msg = err.message;
+    } else if (err && typeof err === 'object') {
+      if ('message' in err && typeof (err as Record<string, unknown>).message === 'string') {
+        msg = (err as Record<string, unknown>).message as string;
+      } else {
+        try {
+          msg = JSON.stringify(err);
+        } catch {
+          msg = String(err);
+        }
+      }
+    } else {
+      msg = String(err);
+    }
+
+    if (!msg || msg === '{}' || msg === '[object Object]') {
+      msg = 'An unknown wallet or network error occurred.';
+    }
+
     console.error('Captured Error:', msg);
 
     if (msg.toLowerCase().includes('freighter') && msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('wallet not found')) {
@@ -42,7 +62,7 @@ export default function Home() {
         type: 'warning' as const,
       };
     }
-    if (msg.toLowerCase().includes('user reject') || msg.toLowerCase().includes('cancel') || msg.toLowerCase().includes('declined')) {
+    if (msg.toLowerCase().includes('user reject') || msg.toLowerCase().includes('cancel') || msg.toLowerCase().includes('declined') || msg.toLowerCase().includes('closed')) {
       return {
         message: 'Signature request cancelled. No changes were made.',
         type: 'info' as const,
