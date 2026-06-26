@@ -37,7 +37,7 @@
 
 ## 📖 Project Description
 
-**Payment Streaming Vault** is a production-grade Stellar Soroban dApp that implements real-time linear token vesting. A sender locks a custom `SV` (Stream Vault) token into a smart contract vault, which then vests linearly to a recipient over a chosen duration.
+**Payment Streaming Vault** is a production-grade Stellar Soroban dApp that implements real-time linear token vesting. A sender locks a custom `SV` (Stream Vault) token into a smart contract vault[...]
 
 **Key features:**
 - 🔒 **Secure vault custody** — tokens locked in the stream contract until they vest
@@ -46,7 +46,7 @@
 - ❌ **Early cancellation** — senders can cancel a stream; vested portion goes to the recipient, unvested is returned
 - ⛓️ **On-chain inter-contract calls** — token transfers are executed as real Soroban-to-Soroban invocations, not simulated
 
-The centerpiece technical feature is the **on-chain inter-contract call** from the `stream` contract to the `token` contract that moves funds securely and verifiably on-chain during both stream creation and withdrawal.
+The centerpiece technical feature is the **on-chain inter-contract call** from the `stream` contract to the `token` contract that moves funds securely and verifiably on-chain during both stream cr[...]
 
 ---
 
@@ -129,8 +129,8 @@ The centerpiece technical feature is the **on-chain inter-contract call** from t
 
 | Contract | Address | Stellar Expert |
 |---------|---------|---------------|
-| **Token Contract** (`SV`) | `CCEKQUG2J37NH6EM6VBFGN5KBAIPBSRTFU5Q7UVMMJXVBM7P3T23O67R` | [View on Stellar Expert ↗](https://stellar.expert/explorer/testnet/contract/CCEKQUG2J37NH6EM6VBFGN5KBAIPBSRTFU5Q7UVMMJXVBM7P3T23O67R) |
-| **Stream Contract** | `CCP65ERUSMNI25ZOO7P6C4HG4FVIJBMCPZPZW7AQGQA6653EOLETMJBG` | [View on Stellar Expert ↗](https://stellar.expert/explorer/testnet/contract/CCP65ERUSMNI25ZOO7P6C4HG4FVIJBMCPZPZW7AQGQA6653EOLETMJBG) |
+| **Token Contract** (`SV`) | `CCEKQUG2J37NH6EM6VBFGN5KBAIPBSRTFU5Q7UVMMJXVBM7P3T23O67R` | [View on Stellar Expert ↗](https://stellar.expert/explorer/testnet/contract/CCEKQUG2J37NH6EM6VBFGN5KBA[...]
+| **Stream Contract** | `CCP65ERUSMNI25ZOO7P6C4HG4FVIJBMCPZPZW7AQGQA6653EOLETMJBG` | [View on Stellar Expert ↗](https://stellar.expert/explorer/testnet/contract/CCP65ERUSMNI25ZOO7P6C4HG4FVIJBMC[...]
 
 ### Contract Addresses in Environment Config
 
@@ -145,7 +145,7 @@ NEXT_PUBLIC_STELLAR_RPC_URL=https://soroban-testnet.stellar.org:443
 
 ## ⛓️ Inter-Contract Calls
 
-This is the **core technical feature** of the project. The `stream` contract calls the `token` contract directly on-chain using Soroban's typed contract client — a real Soroban-to-Soroban invocation, not a simulation or workaround.
+This is the **core technical feature** of the project. The `stream` contract calls the `token` contract directly on-chain using Soroban's typed contract client — a real Soroban-to-Soroban invoc[...]
 
 ### How It Works
 
@@ -192,8 +192,8 @@ The SDK call used is `soroban_sdk::token::Client::new(&env, &token_address).tran
 
 | Action | Transaction Hash | Stellar Expert |
 |--------|----------------|---------------|
-| `create_stream` | `1254a65133f37a5c153e17e995ebddfac658b776b05100c7b99d39baa2d2ab06` | [View ↗](https://stellar.expert/explorer/testnet/tx/1254a65133f37a5c153e17e995ebddfac658b776b05100c7b99d39baa2d2ab06) |
-| `withdraw` | `6c2b029f2c6e926bf3683ac6ce2aca217081e2543782722b62694a97bb719fc3` | [View ↗](https://stellar.expert/explorer/testnet/tx/6c2b029f2c6e926bf3683ac6ce2aca217081e2543782722b62694a97bb719fc3) |
+| `create_stream` | `1254a65133f37a5c153e17e995ebddfac658b776b05100c7b99d39baa2d2ab06` | [View ↗](https://stellar.expert/explorer/testnet/tx/1254a65133f37a5c153e17e995ebddfac658b776b05100c7b99d[...]
+| `withdraw` | `6c2b029f2c6e926bf3683ac6ce2aca217081e2543782722b62694a97bb719fc3` | [View ↗](https://stellar.expert/explorer/testnet/tx/6c2b029f2c6e926bf3683ac6ce2aca217081e2543782722b62694a97b[...]
 
 > Both transactions are live on Stellar testnet. The `withdraw` transaction's effects show a balance change on the Token contract, proving the inter-contract call executed successfully.
 
@@ -233,7 +233,7 @@ Wallet integration is handled by `@creit.tech/stellar-wallets-kit` (StellarWalle
     : (stream.deposit * elapsed) / stream.duration;
   ```
 
-- The on-chain `vested_amount` is **not** polled every frame (that would be expensive RPC calls). Instead, the client-side formula runs every **100ms** for smooth UI, and the full on-chain state syncs every **8 seconds** to keep it accurate.
+- The on-chain `vested_amount` is **not** polled every frame (that would be expensive RPC calls). Instead, the client-side formula runs every **100ms** for smooth UI, and the full on-chain state [...]
 
 ---
 
@@ -275,6 +275,9 @@ Also caught at the contract level if the balance check fails post-submission.
 
 ### Recipient Dashboard — Live Vesting Ticker & Withdraw
 ![Receiver homepage](screenshots/receiver_homepage.png)
+
+### Mobile (Responsive) View
+![Mobile view](screenshots/mobileview.png)
 
 ### Full App Demo (Animated)
 ![App demo flow](screenshots/demo_video.gif)
